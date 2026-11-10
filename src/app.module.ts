@@ -5,7 +5,7 @@ import { ConfigModule } from '@nestjs/config';
 import { APP_FILTER } from '@nestjs/core';
 import { GraphQLModule } from '@nestjs/graphql';
 
-import { CardLoadersFactory, CardModule, type GraphqlContext } from '~/card';
+import { CARD_EXAMPLE_QUERY, CardLoadersFactory, CardModule, type GraphqlContext } from '~/card';
 import { AppExceptionFilter } from '~/common/errors';
 import { RequestLoggingPlugin } from '~/common/graphql';
 import { LoggerModule } from '~/common/logger';
@@ -31,7 +31,7 @@ import { PrismaModule } from '~/prisma';
         introspection: true,
         playground: false,
         includeStacktraceInErrorResponses: !isProduction,
-        plugins: [ApolloServerPluginLandingPageLocalDefault({ embed: true })],
+        plugins: [ApolloServerPluginLandingPageLocalDefault({ embed: true, document: CARD_EXAMPLE_QUERY })],
         context: (): GraphqlContext => ({ loaders: loaders.create() }),
       }),
     }),
