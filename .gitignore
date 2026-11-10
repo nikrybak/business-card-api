@@ -3,6 +3,8 @@ dist
 coverage
 src/generated
 .env
+.idea
+.vscode
 
 # Yarn PnP: the release is committed, the cache and the generated loader are not
 .pnp.*
