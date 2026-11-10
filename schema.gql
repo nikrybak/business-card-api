@@ -1,0 +1,74 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type Experience {
+  achievements: [String!]!
+  company: String!
+  id: ID!
+  location: String!
+  period: Period!
+  position: String!
+  stack: [String!]!
+}
+
+"""A professional profile or a contact"""
+type Link {
+  label: String!
+  url: String!
+}
+
+"""Calendar months, both ends included"""
+type Period {
+  """YYYY-MM, empty while the job is current"""
+  end: String
+  months: Int!
+
+  """YYYY-MM"""
+  start: String!
+}
+
+"""The person behind the card"""
+type Profile {
+  description: String!
+  experience: [Experience!]!
+  headline: String!
+  id: ID!
+  links: [Link!]!
+  location: String!
+  name: String!
+  projects: [Project!]!
+  skills(
+    """Only skills of this category"""
+    category: SkillCategory
+  ): [Skill!]!
+}
+
+type Project {
+  description: String!
+  name: String!
+  stack: [String!]!
+
+  """The project page or its repository"""
+  url: String!
+}
+
+type Query {
+  """The owner of this business card"""
+  profile: Profile!
+}
+
+type Skill {
+  category: SkillCategory!
+  name: String!
+}
+
+enum SkillCategory {
+  BACKEND
+  DATA
+  DEVOPS
+  FRONTEND
+  LANGUAGE
+  MESSAGING
+  PRACTICE
+}

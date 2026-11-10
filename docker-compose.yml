@@ -1,0 +1,23 @@
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: card
+      POSTGRES_PASSWORD: card
+      POSTGRES_DB: card
+    ports:
+      - '5432:5432'
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U card -d card']
+      interval: 2s
+      retries: 15
+
+  api:
+    build: .
+    environment:
+      DATABASE_URL: postgresql://card:card@db:5432/card
+    ports:
+      - '3000:3000'
+    depends_on:
+      db:
+        condition: service_healthy

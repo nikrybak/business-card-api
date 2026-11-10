@@ -1,0 +1,94 @@
+generator client {
+  provider            = "prisma-client"
+  output              = "../src/generated/prisma"
+  moduleFormat        = "cjs"
+  importFileExtension = "js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Profile {
+  id          Int          @id @default(autoincrement())
+  slug        String       @unique
+  name        String
+  headline    String
+  description String
+  location    String
+  links       Link[]
+  skills      Skill[]
+  experience  Experience[]
+  projects    Project[]
+}
+
+model Link {
+  id        Int     @id @default(autoincrement())
+  profileId Int
+  label     String
+  url       String
+  sortOrder Int
+  profile   Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@index([profileId, sortOrder])
+}
+
+enum SkillCategory {
+  LANGUAGE
+  BACKEND
+  DATA
+  MESSAGING
+  FRONTEND
+  DEVOPS
+  PRACTICE
+}
+
+model Skill {
+  id        Int           @id @default(autoincrement())
+  profileId Int
+  name      String
+  category  SkillCategory
+  sortOrder Int
+  profile   Profile       @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@unique([profileId, name])
+  @@index([profileId, sortOrder])
+}
+
+model Experience {
+  id           Int           @id @default(autoincrement())
+  profileId    Int
+  company      String
+  position     String
+  location     String
+  startedAt    DateTime      @db.Date
+  endedAt      DateTime?     @db.Date
+  stack        String[]
+  achievements Achievement[]
+  profile      Profile       @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@index([profileId, startedAt])
+}
+
+model Achievement {
+  id           Int        @id @default(autoincrement())
+  experienceId Int
+  text         String
+  sortOrder    Int
+  experience   Experience @relation(fields: [experienceId], references: [id], onDelete: Cascade)
+
+  @@index([experienceId, sortOrder])
+}
+
+model Project {
+  id          Int      @id @default(autoincrement())
+  profileId   Int
+  name        String
+  description String
+  url         String
+  stack       String[]
+  sortOrder   Int
+  profile     Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@index([profileId, sortOrder])
+}

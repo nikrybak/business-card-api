@@ -1,0 +1,10 @@
+node_modules
+dist
+coverage
+src/generated
+.env
+
+# Yarn PnP: the release is committed, the cache and the generated loader are not
+.pnp.*
+.yarn/*
+!.yarn/releases

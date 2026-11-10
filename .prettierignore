@@ -1,0 +1,9 @@
+dist
+coverage
+src/generated
+prisma/migrations
+schema.gql
+.yarn
+.pnp.*
+.yarnrc.yml
+yarn.lock
