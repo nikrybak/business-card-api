@@ -2,8 +2,8 @@
 
 Цифровая визитка Никиты Рыбака - backend на NestJS, Prisma и GraphQL
 
-- Apollo Sandbox: <https://business-card-api.onrender.com/graphql>
-- Health check: <https://business-card-api.onrender.com/health>
+- Apollo Sandbox: <https://business-card-api-amp9.onrender.com/graphql>
+- Health check: <https://business-card-api-amp9.onrender.com/health>
 
 Сервис на бесплатном тарифе Render засыпает без запросов - первый ответ после паузы идёт до минуты
 
