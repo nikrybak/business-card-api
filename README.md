@@ -67,6 +67,12 @@ yarn test
 yarn test:e2e
 ```
 
+Живые проверки работающего сервиса - Sandbox, health, вложенные данные, фильтр, ошибки валидации:
+
+```bash
+yarn smoke https://business-card-api-amp9.onrender.com
+```
+
 ## Архитектура
 
 ```text

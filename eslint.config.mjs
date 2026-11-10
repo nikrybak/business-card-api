@@ -24,6 +24,14 @@ export default tseslint.config(
   {
     files: ['**/*.js', '**/*.cjs', '**/*.mjs'],
     extends: [tseslint.configs.disableTypeChecked],
-    languageOptions: { globals: { module: 'writable', require: 'readonly' } },
+    languageOptions: {
+      globals: {
+        module: 'writable',
+        require: 'readonly',
+        process: 'readonly',
+        console: 'readonly',
+        fetch: 'readonly',
+      },
+    },
   },
 );
