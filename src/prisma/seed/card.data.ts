@@ -13,7 +13,7 @@ export const card = {
   links: [
     { label: 'GitHub', url: 'https://github.com/nikrybak' },
     { label: 'LinkedIn', url: 'https://www.linkedin.com/in/nikita-rybak' },
-    { label: 'Telegram', url: 'https://t.me/nik_rybak' },
+    { label: 'Telegram', url: 'https://t.me/nrg_2026' },
     { label: 'Email', url: 'mailto:nrybak200x@gmail.com' },
   ],
 
