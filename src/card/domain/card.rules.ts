@@ -18,6 +18,6 @@ export function toPeriod(startedAt: Date, endedAt: Date | null, now = new Date()
   return { start: toMonth(startedAt), end: endedAt && toMonth(endedAt), months };
 }
 
-export function selectSkills(skills: readonly Skill[], category?: SkillCategory): Skill[] {
-  return category ? skills.filter((skill) => skill.category === category) : [...skills];
+export function selectSkills(skills: readonly Skill[], category?: SkillCategory | null): readonly Skill[] {
+  return category ? skills.filter((skill) => skill.category === category) : skills;
 }

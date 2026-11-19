@@ -43,10 +43,8 @@ describe('selectSkills', () => {
     expect(selectSkills(skills, SkillCategory.DATA).map(({ name }) => name)).toEqual(['PostgreSQL']);
   });
 
-  it('returns a copy of all skills without a category', () => {
-    const selected = selectSkills(skills);
-
-    expect(selected).toEqual(skills);
-    expect(selected).not.toBe(skills);
+  it('returns all skills without a category', () => {
+    expect(selectSkills(skills)).toEqual(skills);
+    expect(selectSkills(skills, null)).toEqual(skills);
   });
 });

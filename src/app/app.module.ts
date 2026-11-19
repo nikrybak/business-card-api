@@ -28,7 +28,13 @@ import { RequestLoggingPlugin } from './request-logging.plugin';
         introspection: true,
         playground: false,
         fieldResolverEnhancers: ['filters'],
-        plugins: [ApolloServerPluginLandingPageLocalDefault({ embed: true, document: CARD_EXAMPLE_QUERY })],
+        parseOptions: { maxLexicalTokens: 500, maxSourceLength: 10_000 },
+        plugins: [
+          ApolloServerPluginLandingPageLocalDefault({
+            document: CARD_EXAMPLE_QUERY,
+            embed: { initialState: { pollForSchemaUpdates: false } },
+          }),
+        ],
         context: (): GraphqlContext => ({ loaders: loaders.create() }),
       }),
     }),

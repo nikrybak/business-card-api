@@ -29,6 +29,7 @@ const gql = async (query) => {
     const response = await fetch(`${base}/health`);
     assert(response.status === 200, `status ${response.status}`);
     assert((await response.json()).status === 'ok', 'body is not ok');
+    assert(!response.headers.has('x-powered-by'), 'x-powered-by is exposed');
   });
 
   await check('Apollo Sandbox landing page is served on GET /graphql', async () => {

@@ -1,12 +1,13 @@
 import type { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
+import { getIntrospectionQuery } from 'graphql';
 import request from 'supertest';
 import type { App } from 'supertest/types';
 
 import { AppModule } from '~/app/app.module';
 import { CardReader } from '~/card';
 import { PrismaService } from '~/database';
-import { seed } from '~/database/seed';
+import { card, seed } from '~/database/seed';
 
 type Job = {
   company: string;
@@ -47,7 +48,6 @@ describe('GraphQL business card', () => {
   });
 
   afterAll(() => app.close());
-  afterEach(() => jest.restoreAllMocks());
 
   const query = async <T>(text: string): Promise<T> => {
     const response = await request(app.getHttpServer()).post('/graphql').send({ query: text }).expect(200);
@@ -57,12 +57,16 @@ describe('GraphQL business card', () => {
   it('returns the seeded profile with its nested data', async () => {
     const { profile } = await query<Card>(FULL_CARD);
 
-    expect(profile.name).toBe('Nikita Rybak');
-    expect(profile.links).toContainEqual({ label: 'GitHub', url: 'https://github.com/nikrybak' });
-    expect(profile.skills).toContainEqual({ name: 'NestJS', category: 'BACKEND' });
-    expect(profile.experience[0]).toMatchObject({ company: 'Bambit', period: { end: null } });
-    expect(profile.experience.every(({ achievements }) => achievements.length > 0)).toBe(true);
-    expect(profile.projects.length).toBeGreaterThan(0);
+    expect(profile.name).toBe(card.name);
+    expect(profile.links).toEqual(card.links);
+    expect(profile.skills).toEqual(
+      Object.entries(card.skills).flatMap(([category, names]) => names.map((name) => ({ name, category }))),
+    );
+    expect(profile.experience.map(({ company, achievements }) => ({ company, achievements }))).toEqual(
+      card.experience.map(({ company, achievements }) => ({ company, achievements })),
+    );
+    expect(profile.experience[0]?.period.end).toBeNull();
+    expect(profile.projects).toEqual(card.projects.map(({ name, url }) => ({ name, url })));
   });
 
   it('filters skills by category', async () => {
@@ -84,11 +88,56 @@ describe('GraphQL business card', () => {
   });
 
   it('does not touch tables the query does not select', async () => {
-    const projects = jest.spyOn(reader, 'findProjects');
+    const lists = (
+      ['findLinks', 'findSkills', 'findExperience', 'findAchievements', 'findProjects'] as const
+    ).map((name) => jest.spyOn(reader, name));
 
     await query<Card>('{ profile { name } }');
 
-    expect(projects).not.toHaveBeenCalled();
+    for (const list of lists) expect(list).not.toHaveBeenCalled();
+  });
+
+  it('reads the owner once however many times the query repeats it', async () => {
+    const owner = jest.spyOn(reader, 'findProfile');
+    const aliases = Array.from({ length: 50 }, (_, index) => `a${index}: profile { name }`).join(' ');
+
+    await query(`{ ${aliases} }`);
+
+    expect(owner).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps ids and content when the seed runs again', async () => {
+    const IDS = '{ profile { id experience { id company } } }';
+    const before = await query<{ profile: { id: string; experience: { id: string }[] } }>(IDS);
+    const card = await query<Card>(FULL_CARD);
+
+    await seed(app.get(PrismaService));
+
+    expect(await query(IDS)).toEqual(before);
+    expect(await query<Card>(FULL_CARD)).toEqual(card);
+  });
+
+  it('refuses an oversized query before running it and still serves introspection', async () => {
+    const profile = jest.spyOn(reader, 'findProfile');
+    const aliases = Array.from({ length: 100 }, (_, index) => `a${index}: profile { name }`).join(' ');
+    const introspection = getIntrospectionQuery({
+      descriptions: true,
+      inputValueDeprecation: true,
+      oneOf: true,
+    });
+
+    const longString = `{ profile(id: "${'x'.repeat(20_000)}") { name } }`;
+
+    for (const oversized of [`{ ${aliases} }`, longString]) {
+      const response = await request(app.getHttpServer())
+        .post('/graphql')
+        .send({ query: oversized })
+        .expect(400);
+      expect(response.body).toMatchObject({ errors: [{ extensions: { code: 'GRAPHQL_PARSE_FAILED' } }] });
+      expect(JSON.stringify(response.body).length).toBeLessThan(1_000);
+    }
+    expect(profile).not.toHaveBeenCalled();
+    await request(app.getHttpServer()).post('/graphql').send({ query: introspection }).expect(200);
   });
 
   it('answers a database check on /health', async () => {
