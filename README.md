@@ -77,25 +77,54 @@ npm run smoke -- https://business-card-api-amp9.onrender.com
 
 ```text
 src/
+  main.ts               старт: логгер, shutdown hooks, порт
+  app/                  сборка приложения - знает всех, его не знает никто
+    app.module.ts       корень: конфиг, Prisma, срезы, GraphQL, фильтр ошибок
+    app.config.ts       PORT, NODE_ENV
+    app-exception.filter.ts  политика ошибок API
+    request-logging.plugin.ts  строка лога на GraphQL-операцию
+    health.controller.ts     GET /health
+  database/             подключение к базе - не знает ни app, ни срезов
+    database.config.ts  DATABASE_URL
+    prisma.module.ts    глобальный PrismaService
+    prisma.service.ts
+    seed/               содержимое визитки и идемпотентный сид
+  shared/               кирпичи для срезов - не знает никого
+    env.ts              readEnv, readPort
+    domain.error.ts     база доменных ошибок
+    grouped-loader.ts   DataLoader "дети по родителю"
   card/                 срез "визитка" - модуль собирает три слоя
-    api/                GraphQL: резолверы, DTO, маппер записей в DTO
-    domain/             правила: владелец визитки, период работы, доменные ошибки, порт CardReader
-    data/               адаптер Prisma для порта и DataLoader'ы на запрос
-  common/               сквозное: логгер, фильтр ошибок, батчинг, логирование запросов
-  config/               конфигурация по ключам через registerAs
-  prisma/               клиент базы и сид
-  health/               проверка живости для платформы
+    index.ts            публичный вход среза: всё, что видно снаружи
+    card.module.ts      единственное место, где слои связаны
+    card.config.ts      настройки среза (PROFILE_SLUG)
+    domain/
+      card.reader.ts    порт CardReader и типы, которыми он говорит
+      card.service.ts   владелец визитки
+      card.rules.ts     чистые правила: период работы, выбор навыков
+      card.errors.ts    доменные ошибки
+    data/
+      prisma-card.repository.ts  адаптер Prisma для порта
+    api/
+      card.resolvers.ts поля GraphQL
+      card.inputs.ts    что приходит: аргументы
+      card.outputs.ts   что уходит: типы ответа и CardMapper (запись -> тип, поля явно)
+      card.loaders.ts   DataLoader'ы на запрос, контекст и @Loaders()
+      card.example.ts   пример запроса для Sandbox
 prisma/                 схема и миграции
 test/                   e2e на реальной базе
 ```
 
 ### Слои и зависимости
 
-Направление зависимостей одно: `api -> domain <- data`
+Верхний уровень: `main -> app -> card -> database -> shared`; каждый знает только тех, кто правее, и свой конфиг регистрирует сам (`app.config.ts`, `database.config.ts`, `card.config.ts`)
+
+Внутри среза направление одно: `api -> domain <- data`
 
 - `domain` не знает ни про GraphQL, ни про Prisma как технологию - он объявляет порт `CardReader`, абстрактный класс, который заодно служит токеном DI
 - `data` реализует порт через Prisma, `CardModule` связывает их одной строкой `{ provide: CardReader, useClass: PrismaCardRepository }` - хранилище меняется без правок домена и API
 - `api` отдаёт наружу только DTO - маппер `CardMapper` копирует поля явно, служебные `slug`, `sortOrder` и внешние ключи в ответ не попадают
+- типы хранилища домен и API берут только из `card.reader.ts` - про `~/database` в срезе знают ровно два файла: порт и адаптер
+- направление закреплено в ESLint (`no-restricted-imports` по слоям): `shared` не импортирует никого, `database` - `app` и срезы, срезы - `app`; внутри среза `domain` не импортирует `api`, `data`, GraphQL и базу, `api` - `data` и базу, `data` - `api` и GraphQL; нарушение роняет `lint`
 
 Новый срез, например "блог", добавляется рядом с `card` тем же набором папок и подключается одним импортом модуля
 
@@ -129,7 +158,7 @@ test/                   e2e на реальной базе
 
 Миграции и сид - шаг деплоя, а не запуска приложения: после зелёных проверок на `main` джоба CI `migrate-production` выполняет `prisma migrate deploy` и сид на боевой базе. Prisma CLI нужен только для разработки и этой джобы, поэтому лежит в `devDependencies`. Рабочий образ собран на distroless `gcr.io/distroless/nodejs22-debian12:nonroot`: только Node.js, скомпилированный `dist` и прод-пакеты, без npm, shell и root - это проверяет `npm run check:image` в CI
 
-Сид идемпотентный: содержимое визитки лежит в коде (`src/prisma/seed/card.data.ts`) и считается источником истины, поэтому сохранённая копия заменяется целиком в одной транзакции. Повторный запуск не плодит дубли, а правка данных - это правка одного файла
+Сид идемпотентный: содержимое визитки лежит в коде (`src/database/seed/card.data.ts`) и считается источником истины, поэтому сохранённая копия заменяется целиком в одной транзакции. Повторный запуск не плодит дубли, а правка данных - это правка одного файла
 
 ### Ошибки
 

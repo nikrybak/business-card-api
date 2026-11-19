@@ -6,5 +6,5 @@
     "removeComments": true
   },
   "include": ["src"],
-  "exclude": ["**/*.spec.ts", "src/prisma/seed"]
+  "exclude": ["**/*.spec.ts", "src/database/seed"]
 }

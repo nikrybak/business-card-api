@@ -6,6 +6,6 @@ if (existsSync('.env')) {
 }
 
 export default defineConfig({
-  migrations: { seed: 'tsx src/prisma/seed/seed.ts' },
+  migrations: { seed: 'tsx src/database/seed/seed.ts' },
   datasource: { url: process.env.DATABASE_URL },
 });

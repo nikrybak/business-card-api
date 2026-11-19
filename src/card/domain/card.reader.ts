@@ -1,9 +1,8 @@
-import type { Achievement, Experience, Link, Profile, Project, Skill } from '~/prisma';
+import type { Achievement, Experience, Link, Profile, Project, Skill } from '~/database';
 
-/**
- * Port: what the card needs from storage. Lists are read by many parent ids at once,
- * so the API can batch nested data instead of querying per parent
- */
+export { SkillCategory } from '~/database';
+export type { Achievement, Experience, Link, Profile, Project, Skill };
+
 export abstract class CardReader {
   abstract findProfile(slug: string): Promise<Profile | null>;
   abstract findLinks(profileIds: readonly number[]): Promise<Link[]>;

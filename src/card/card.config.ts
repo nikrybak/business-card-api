@@ -1,6 +1,6 @@
 import { registerAs, type ConfigType } from '@nestjs/config';
 
-import { readEnv } from '~/config';
+import { readEnv } from '~/shared/env';
 
 export const cardConfig = registerAs('card', () => ({
   ownerSlug: readEnv('PROFILE_SLUG', 'nikita-rybak'),
