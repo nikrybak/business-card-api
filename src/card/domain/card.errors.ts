@@ -1,4 +1,4 @@
-import { DomainError } from '~/common/errors';
+import { DomainError } from '~/shared/domain.error';
 
 export class ProfileNotFoundError extends DomainError {
   readonly code = 'PROFILE_NOT_FOUND';

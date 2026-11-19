@@ -3,18 +3,18 @@ import { Test } from '@nestjs/testing';
 import request from 'supertest';
 import type { App } from 'supertest/types';
 
-import { AppModule } from '~/app.module';
-import { CardReader } from '~/card/domain';
-import { PrismaService } from '~/prisma';
-import { seed } from '~/prisma/seed';
+import { AppModule } from '~/app/app.module';
+import { CardReader } from '~/card';
+import { PrismaService } from '~/database';
+import { seed } from '~/database/seed';
 
-interface Job {
+type Job = {
   company: string;
   period: { start: string; end: string | null; months: number };
   achievements: string[];
-}
+};
 
-interface Card {
+type Card = {
   profile: {
     name: string;
     links: { label: string; url: string }[];
@@ -22,7 +22,7 @@ interface Card {
     experience: Job[];
     projects: { name: string; url: string }[];
   };
-}
+};
 
 const FULL_CARD = `{
   profile {

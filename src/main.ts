@@ -1,17 +1,17 @@
+import { ConsoleLogger } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 
-import { AppModule } from '~/app.module';
-import { AppLogger } from '~/common/logger';
-import { appConfig, type AppConfig } from '~/config';
+import { appConfig, type AppConfig } from '~/app/app.config';
+import { AppModule } from '~/app/app.module';
 
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule, { bufferLogs: true });
-  const logger = app.get(AppLogger);
+  const { port, isProduction } = app.get<AppConfig>(appConfig.KEY);
+  const logger = new ConsoleLogger({ json: isProduction, colors: !isProduction });
+
   app.useLogger(logger);
-  // SIGTERM and SIGINT stop taking requests first, then close the database pool
   app.enableShutdownHooks();
 
-  const { port } = app.get<AppConfig>(appConfig.KEY);
   await app.listen(port, '0.0.0.0');
   logger.log(`GraphQL is ready on port ${port} at /graphql`, 'Bootstrap');
 }

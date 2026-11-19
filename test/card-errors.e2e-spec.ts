@@ -3,11 +3,10 @@ import { Test } from '@nestjs/testing';
 import request from 'supertest';
 import type { App } from 'supertest/types';
 
-import { AppModule } from '~/app.module';
-import { cardConfig } from '~/card/card.config';
-import { CardReader } from '~/card/domain';
-import { PrismaService } from '~/prisma';
-import { seed } from '~/prisma/seed';
+import { AppModule } from '~/app/app.module';
+import { cardConfig, CardReader } from '~/card';
+import { PrismaService } from '~/database';
+import { seed } from '~/database/seed';
 
 const start = async (ownerSlug?: string): Promise<INestApplication<App>> => {
   const builder = Test.createTestingModule({ imports: [AppModule] });
