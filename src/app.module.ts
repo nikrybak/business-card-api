@@ -30,6 +30,7 @@ import { PrismaModule } from '~/prisma';
         sortSchema: true,
         introspection: true,
         playground: false,
+        fieldResolverEnhancers: ['filters'],
         includeStacktraceInErrorResponses: !isProduction,
         plugins: [ApolloServerPluginLandingPageLocalDefault({ embed: true, document: CARD_EXAMPLE_QUERY })],
         context: (): GraphqlContext => ({ loaders: loaders.create() }),
