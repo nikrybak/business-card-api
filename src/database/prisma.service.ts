@@ -8,7 +8,7 @@ import { databaseConfig, type DatabaseConfig } from './database.config';
 @Injectable()
 export class PrismaService extends PrismaClient implements OnModuleDestroy {
   constructor(@Inject(databaseConfig.KEY) { url }: DatabaseConfig) {
-    super({ adapter: new PrismaPg({ connectionString: url }) });
+    super({ adapter: new PrismaPg({ connectionString: url, connectionTimeoutMillis: 5_000 }) });
   }
 
   async onModuleDestroy(): Promise<void> {

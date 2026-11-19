@@ -67,7 +67,7 @@ model Experience {
   achievements Achievement[]
   profile      Profile       @relation(fields: [profileId], references: [id], onDelete: Cascade)
 
-  @@index([profileId, startedAt])
+  @@unique([profileId, startedAt, company])
 }
 
 model Achievement {

@@ -14,7 +14,7 @@ import { PrismaService } from '~/database';
 const ofProfiles = (profileIds: readonly number[]) => ({ profileId: { in: [...profileIds] } });
 const ofJobs = (experienceIds: readonly number[]) => ({ experienceId: { in: [...experienceIds] } });
 const IN_CARD_ORDER = { sortOrder: 'asc' } as const;
-const NEWEST_FIRST = { startedAt: 'desc' } as const;
+const NEWEST_FIRST = [{ startedAt: 'desc' as const }, { company: 'asc' as const }];
 
 @Injectable()
 export class PrismaCardRepository implements CardReader {

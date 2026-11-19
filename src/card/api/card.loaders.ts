@@ -1,7 +1,7 @@
-import { createParamDecorator, Injectable, type ExecutionContext } from '@nestjs/common';
-import { GqlExecutionContext } from '@nestjs/graphql';
+import { Injectable } from '@nestjs/common';
 
-import { CardReader } from '~/card/domain/card.reader';
+import { CardReader, type Profile } from '~/card/domain/card.reader';
+import { CardService } from '~/card/domain/card.service';
 import { groupedLoader } from '~/shared/grouped-loader';
 
 export type CardLoaders = ReturnType<CardLoadersFactory['create']>;
@@ -12,11 +12,16 @@ export type GraphqlContext = {
 
 @Injectable()
 export class CardLoadersFactory {
-  constructor(private readonly reader: CardReader) {}
+  constructor(
+    private readonly reader: CardReader,
+    private readonly card: CardService,
+  ) {}
 
   create() {
-    const { reader } = this;
+    const { reader, card } = this;
+    let owner: Promise<Profile> | undefined;
     return {
+      owner: () => (owner ??= card.getOwner()),
       links: groupedLoader((ids) => reader.findLinks(ids), byProfile),
       skills: groupedLoader((ids) => reader.findSkills(ids), byProfile),
       experience: groupedLoader((ids) => reader.findExperience(ids), byProfile),
@@ -25,11 +30,6 @@ export class CardLoadersFactory {
     } as const;
   }
 }
-
-export const Loaders = createParamDecorator(
-  (_: unknown, context: ExecutionContext): CardLoaders =>
-    GqlExecutionContext.create(context).getContext<GraphqlContext>().loaders,
-);
 
 const byProfile = ({ profileId }: { profileId: number }): number => profileId;
 const byExperience = ({ experienceId }: { experienceId: number }): number => experienceId;

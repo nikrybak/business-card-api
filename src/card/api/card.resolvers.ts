@@ -1,10 +1,9 @@
-import { Args, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
+import { Args, Context, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
 
 import { selectSkills } from '~/card/domain/card.rules';
-import { CardService } from '~/card/domain/card.service';
 
 import { SkillsArgs } from './card.inputs';
-import { Loaders, type CardLoaders } from './card.loaders';
+import { type CardLoaders } from './card.loaders';
 import {
   CardMapper,
   ExperienceOutput,
@@ -16,15 +15,16 @@ import {
 
 @Resolver(() => ProfileOutput)
 export class ProfileResolver {
-  constructor(private readonly card: CardService) {}
-
   @Query(() => ProfileOutput, { description: 'The owner of this business card' })
-  async profile(): Promise<ProfileOutput> {
-    return CardMapper.profile(await this.card.getOwner());
+  async profile(@Context('loaders') { owner }: CardLoaders): Promise<ProfileOutput> {
+    return CardMapper.profile(await owner());
   }
 
   @ResolveField(() => [LinkOutput])
-  async links(@Parent() { id }: ProfileOutput, @Loaders() { links }: CardLoaders): Promise<LinkOutput[]> {
+  async links(
+    @Parent() { id }: ProfileOutput,
+    @Context('loaders') { links }: CardLoaders,
+  ): Promise<LinkOutput[]> {
     return (await links.load(id)).map(CardMapper.link);
   }
 
@@ -32,7 +32,7 @@ export class ProfileResolver {
   async skills(
     @Parent() { id }: ProfileOutput,
     @Args() { category }: SkillsArgs,
-    @Loaders() { skills }: CardLoaders,
+    @Context('loaders') { skills }: CardLoaders,
   ): Promise<SkillOutput[]> {
     return selectSkills(await skills.load(id), category).map(CardMapper.skill);
   }
@@ -40,7 +40,7 @@ export class ProfileResolver {
   @ResolveField(() => [ExperienceOutput])
   async experience(
     @Parent() { id }: ProfileOutput,
-    @Loaders() { experience }: CardLoaders,
+    @Context('loaders') { experience }: CardLoaders,
   ): Promise<ExperienceOutput[]> {
     return (await experience.load(id)).map(CardMapper.experience);
   }
@@ -48,7 +48,7 @@ export class ProfileResolver {
   @ResolveField(() => [ProjectOutput])
   async projects(
     @Parent() { id }: ProfileOutput,
-    @Loaders() { projects }: CardLoaders,
+    @Context('loaders') { projects }: CardLoaders,
   ): Promise<ProjectOutput[]> {
     return (await projects.load(id)).map(CardMapper.project);
   }
@@ -59,7 +59,7 @@ export class ExperienceResolver {
   @ResolveField(() => [String])
   async achievements(
     @Parent() { id }: ExperienceOutput,
-    @Loaders() { achievements }: CardLoaders,
+    @Context('loaders') { achievements }: CardLoaders,
   ): Promise<string[]> {
     return (await achievements.load(id)).map(({ text }) => text);
   }

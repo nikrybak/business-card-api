@@ -34,10 +34,10 @@ export class SkillOutput {
 }
 
 @ObjectType('Period', { description: 'Calendar months, both ends included' })
-export class PeriodOutput implements Period {
+class PeriodOutput implements Period {
   @Field({ description: 'YYYY-MM' }) readonly start!: string;
 
-  @Field(() => String, { nullable: true, description: 'YYYY-MM, empty while the job is current' })
+  @Field(() => String, { nullable: true, description: 'YYYY-MM, null while the job is current' })
   readonly end!: string | null;
 
   @Field(() => Int) readonly months!: number;

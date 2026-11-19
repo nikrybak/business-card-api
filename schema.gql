@@ -20,7 +20,7 @@ type Link {
 
 """Calendar months, both ends included"""
 type Period {
-  """YYYY-MM, empty while the job is current"""
+  """YYYY-MM, null while the job is current"""
   end: String
   months: Int!
 
