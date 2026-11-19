@@ -15,7 +15,7 @@
 docker compose up --build
 ```
 
-Контейнер сам применяет миграции, заполняет базу и открывает Sandbox на <http://localhost:3000/graphql>
+Сервис `migrate` применяет миграции и заполняет базу, после него `api` открывает Sandbox на <http://localhost:3000/graphql>
 
 Пример запроса:
 
@@ -49,28 +49,28 @@ docker compose up --build
 }
 ```
 
-Локальная разработка - Yarn 4 в режиме Plug'n'Play, без `node_modules`:
+Локальная разработка - Node.js 22+ и npm, который идёт вместе с Node:
 
 ```bash
 docker compose up -d db
 cp .env.example .env
-yarn install
-yarn db:migrate && yarn db:seed
-yarn start:dev
+npm ci
+npm run db:migrate && npm run db:seed
+npm run start:dev
 ```
 
 Проверки:
 
 ```bash
-yarn typecheck && yarn lint && yarn format:check
-yarn test
-yarn test:e2e
+npm run typecheck && npm run lint && npm run format:check
+npm test
+npm run test:e2e
 ```
 
 Живые проверки работающего сервиса - Sandbox, health, вложенные данные, фильтр, ошибки валидации:
 
 ```bash
-yarn smoke https://business-card-api-amp9.onrender.com
+npm run smoke -- https://business-card-api-amp9.onrender.com
 ```
 
 ## Архитектура
@@ -127,7 +127,7 @@ test/                   e2e на реальной базе
 
 ### Инициализация базы
 
-Команда контейнера: `prisma migrate deploy`, затем сид, затем сервер
+Миграции и сид - шаг деплоя, а не запуска приложения: после зелёных проверок на `main` джоба CI `migrate-production` выполняет `prisma migrate deploy` и сид на боевой базе. Prisma CLI нужен только для разработки и этой джобы, поэтому лежит в `devDependencies`. Рабочий образ собран на distroless `gcr.io/distroless/nodejs22-debian12:nonroot`: только Node.js, скомпилированный `dist` и прод-пакеты, без npm, shell и root - это проверяет `npm run check:image` в CI
 
 Сид идемпотентный: содержимое визитки лежит в коде (`src/prisma/seed/card.data.ts`) и считается источником истины, поэтому сохранённая копия заменяется целиком в одной транзакции. Повторный запуск не плодит дубли, а правка данных - это правка одного файла
 
@@ -149,4 +149,4 @@ Code-first: типы описаны классами DTO, схема собир�
 
 ## Стек
 
-TypeScript, Node.js 22, NestJS 11, GraphQL и Apollo Server 5, Prisma 7, PostgreSQL 17, Docker, Yarn 4 PnP, Jest, ESLint и Prettier, GitHub Actions
+TypeScript, Node.js 22, NestJS 11, GraphQL и Apollo Server 5, Prisma 7, PostgreSQL 17, Docker, npm, Jest, ESLint и Prettier, GitHub Actions

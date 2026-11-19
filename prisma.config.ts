@@ -1,15 +1,11 @@
-import 'dotenv/config';
-
+import { existsSync } from 'node:fs';
 import { defineConfig } from 'prisma/config';
 
+if (existsSync('.env')) {
+  process.loadEnvFile();
+}
+
 export default defineConfig({
-  schema: 'prisma/schema.prisma',
-  migrations: {
-    path: 'prisma/migrations',
-    seed: 'tsx src/prisma/seed/seed.ts',
-  },
-  datasource: {
-    // Read lazily: `prisma generate` runs at build time without a database.
-    url: process.env.DATABASE_URL,
-  },
+  migrations: { seed: 'tsx src/prisma/seed/seed.ts' },
+  datasource: { url: process.env.DATABASE_URL },
 });

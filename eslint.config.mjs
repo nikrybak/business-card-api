@@ -1,8 +1,9 @@
 import js from '@eslint/js';
+import { defineConfig } from 'eslint/config';
 import tseslint from 'typescript-eslint';
 
-export default tseslint.config(
-  { ignores: ['dist', 'coverage', 'src/generated', '.yarn', '.pnp.*'] },
+export default defineConfig(
+  { ignores: ['dist', 'coverage', 'src/generated'] },
   js.configs.recommended,
   tseslint.configs.strictTypeChecked,
   {
@@ -24,14 +25,8 @@ export default tseslint.config(
   {
     files: ['**/*.js', '**/*.cjs', '**/*.mjs'],
     extends: [tseslint.configs.disableTypeChecked],
-    languageOptions: {
-      globals: {
-        module: 'writable',
-        require: 'readonly',
-        process: 'readonly',
-        console: 'readonly',
-        fetch: 'readonly',
-      },
-    },
+    rules: { '@typescript-eslint/no-require-imports': 'off' },
+    languageOptions: { globals: { process: 'readonly', console: 'readonly', fetch: 'readonly' } },
   },
+  { files: ['**/*.js', '**/*.cjs'], languageOptions: { sourceType: 'commonjs' } },
 );
