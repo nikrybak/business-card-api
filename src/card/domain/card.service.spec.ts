@@ -1,7 +1,5 @@
-import { SkillCategory, type Profile, type Skill } from '~/prisma';
-
 import { ProfileNotFoundError } from './card.errors';
-import { type CardReader } from './card.reader';
+import { type CardReader, type Profile } from './card.reader';
 import { CardService } from './card.service';
 
 const aProfile = (overrides: Partial<Profile> = {}): Profile => ({
@@ -12,14 +10,6 @@ const aProfile = (overrides: Partial<Profile> = {}): Profile => ({
   description: 'Builds products end to end',
   location: 'Remote',
   ...overrides,
-});
-
-const aSkill = (name: string, category: SkillCategory): Skill => ({
-  id: 1,
-  profileId: 1,
-  name,
-  category,
-  sortOrder: 0,
 });
 
 describe('CardService', () => {
@@ -41,26 +31,6 @@ describe('CardService', () => {
       findProfile.mockResolvedValue(null);
 
       await expect(service.getOwner()).rejects.toBeInstanceOf(ProfileNotFoundError);
-    });
-  });
-
-  describe('selectSkills', () => {
-    const skills = Object.freeze([
-      aSkill('NestJS', SkillCategory.BACKEND),
-      aSkill('PostgreSQL', SkillCategory.DATA),
-    ]);
-
-    it('keeps only the requested category', () => {
-      expect(service.selectSkills(skills, SkillCategory.DATA).map(({ name }) => name)).toEqual([
-        'PostgreSQL',
-      ]);
-    });
-
-    it('returns a copy of all skills without a category', () => {
-      const selected = service.selectSkills(skills);
-
-      expect(selected).toEqual(skills);
-      expect(selected).not.toBe(skills);
     });
   });
 });

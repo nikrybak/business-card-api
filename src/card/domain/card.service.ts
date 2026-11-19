@@ -1,10 +1,9 @@
 import { Inject, Injectable } from '@nestjs/common';
 
 import { cardConfig, type CardConfig } from '~/card/card.config';
-import type { Profile, Skill, SkillCategory } from '~/prisma';
 
 import { ProfileNotFoundError } from './card.errors';
-import { CardReader } from './card.reader';
+import { CardReader, type Profile } from './card.reader';
 
 @Injectable()
 export class CardService {
@@ -21,10 +20,5 @@ export class CardService {
       throw new ProfileNotFoundError(ownerSlug);
     }
     return profile;
-  }
-
-  /** Skills of one category, or all of them; the input list is left untouched */
-  selectSkills(skills: readonly Skill[], category?: SkillCategory): Skill[] {
-    return category ? skills.filter((skill) => skill.category === category) : [...skills];
   }
 }

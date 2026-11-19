@@ -1,15 +1,15 @@
 import { Injectable } from '@nestjs/common';
 
-import { CardReader } from '~/card/domain';
 import {
-  PrismaService,
+  CardReader,
   type Achievement,
   type Experience,
   type Link,
   type Profile,
   type Project,
   type Skill,
-} from '~/prisma';
+} from '~/card/domain/card.reader';
+import { PrismaService } from '~/prisma';
 
 /** Prisma adapter of the CardReader port */
 @Injectable()

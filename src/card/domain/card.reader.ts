@@ -1,5 +1,8 @@
 import type { Achievement, Experience, Link, Profile, Project, Skill } from '~/prisma';
 
+export { SkillCategory } from '~/prisma';
+export type { Achievement, Experience, Link, Profile, Project, Skill };
+
 /**
  * Port: what the card needs from storage. Lists are read by many parent ids at once,
  * so the API can batch nested data instead of querying per parent

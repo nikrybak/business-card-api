@@ -1,11 +1,11 @@
-import { toPeriod } from '~/card/domain';
-import type { Experience, Link, Profile, Project, Skill } from '~/prisma';
+import type { Experience, Link, Profile, Project, Skill } from '~/card/domain/card.reader';
+import { toPeriod } from '~/card/domain/card.rules';
 
-import type { ExperienceDto, LinkDto, ProfileDto, ProjectDto, SkillDto } from './dto';
+import type { ExperienceOutput, LinkOutput, ProfileOutput, ProjectOutput, SkillOutput } from './card.outputs';
 
 /** Storage records to response DTOs: pure functions, nothing beyond the public contract leaks out */
 export const CardMapper = {
-  profile: ({ id, name, headline, description, location }: Profile): ProfileDto => ({
+  profile: ({ id, name, headline, description, location }: Profile): ProfileOutput => ({
     id,
     name,
     headline,
@@ -13,9 +13,9 @@ export const CardMapper = {
     location,
   }),
 
-  link: ({ label, url }: Link): LinkDto => ({ label, url }),
+  link: ({ label, url }: Link): LinkOutput => ({ label, url }),
 
-  skill: ({ name, category }: Skill): SkillDto => ({ name, category }),
+  skill: ({ name, category }: Skill): SkillOutput => ({ name, category }),
 
   experience: ({
     id,
@@ -25,7 +25,7 @@ export const CardMapper = {
     stack,
     startedAt,
     endedAt,
-  }: Experience): ExperienceDto => ({
+  }: Experience): ExperienceOutput => ({
     id,
     company,
     position,
@@ -34,5 +34,5 @@ export const CardMapper = {
     period: toPeriod(startedAt, endedAt),
   }),
 
-  project: ({ name, description, url, stack }: Project): ProjectDto => ({ name, description, url, stack }),
+  project: ({ name, description, url, stack }: Project): ProjectOutput => ({ name, description, url, stack }),
 } as const;

@@ -1,10 +1,12 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 
-import { ExperienceResolver, ProfileResolver } from './api';
+import { CardLoadersFactory } from './api/card.loaders';
+import { ExperienceResolver, ProfileResolver } from './api/card.resolvers';
 import { cardConfig } from './card.config';
-import { CardLoadersFactory, PrismaCardRepository } from './data';
-import { CardReader, CardService } from './domain';
+import { PrismaCardRepository } from './data/prisma-card.repository';
+import { CardReader } from './domain/card.reader';
+import { CardService } from './domain/card.service';
 
 /** A vertical slice: api -> domain <- data, wired here and nowhere else */
 @Module({

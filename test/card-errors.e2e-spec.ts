@@ -4,8 +4,7 @@ import request from 'supertest';
 import type { App } from 'supertest/types';
 
 import { AppModule } from '~/app.module';
-import { cardConfig } from '~/card/card.config';
-import { CardReader } from '~/card/domain';
+import { cardConfig, CardReader } from '~/card';
 import { PrismaService } from '~/prisma';
 import { seed } from '~/prisma/seed';
 

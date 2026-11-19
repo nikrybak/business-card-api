@@ -1,9 +1,14 @@
-import { Injectable } from '@nestjs/common';
+import { createParamDecorator, Injectable, type ExecutionContext } from '@nestjs/common';
+import { GqlExecutionContext } from '@nestjs/graphql';
 
-import { CardReader } from '~/card/domain';
+import { CardReader } from '~/card/domain/card.reader';
 import { groupedLoader } from '~/common/graphql';
 
 export type CardLoaders = ReturnType<CardLoadersFactory['create']>;
+
+export interface GraphqlContext {
+  readonly loaders: CardLoaders;
+}
 
 /** A fresh set per request, so batching and caching never leak between requests */
 @Injectable()
@@ -21,6 +26,12 @@ export class CardLoadersFactory {
     } as const;
   }
 }
+
+/** Injects the DataLoaders of the current request into a resolver */
+export const Loaders = createParamDecorator(
+  (_: unknown, context: ExecutionContext): CardLoaders =>
+    GqlExecutionContext.create(context).getContext<GraphqlContext>().loaders,
+);
 
 const byProfile = ({ profileId }: { profileId: number }): number => profileId;
 const byExperience = ({ experienceId }: { experienceId: number }): number => experienceId;

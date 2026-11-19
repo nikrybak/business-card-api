@@ -78,9 +78,23 @@ yarn smoke https://business-card-api-amp9.onrender.com
 ```text
 src/
   card/                 срез "визитка" - модуль собирает три слоя
-    api/                GraphQL: резолверы, DTO, маппер записей в DTO
-    domain/             правила: владелец визитки, период работы, доменные ошибки, порт CardReader
-    data/               адаптер Prisma для порта и DataLoader'ы на запрос
+    index.ts            публичный вход среза: всё, что видно снаружи
+    card.module.ts      единственное место, где слои связаны
+    card.config.ts      настройки среза (PROFILE_SLUG)
+    domain/
+      card.reader.ts    порт CardReader и типы, которыми он говорит
+      card.service.ts   владелец визитки
+      card.rules.ts     чистые правила: период работы, выбор навыков
+      card.errors.ts    доменные ошибки
+    data/
+      prisma-card.repository.ts  адаптер Prisma для порта
+    api/
+      card.resolvers.ts поля GraphQL
+      card.inputs.ts    что приходит: аргументы
+      card.outputs.ts   что уходит: типы ответа
+      card.mapper.ts    запись -> тип ответа, поля явно
+      card.loaders.ts   DataLoader'ы на запрос, контекст и @Loaders()
+      card.example.ts   пример запроса для Sandbox
   common/               сквозное: логгер, фильтр ошибок, батчинг, логирование запросов
   config/               конфигурация по ключам через registerAs
   prisma/               клиент базы и сид
@@ -96,6 +110,8 @@ test/                   e2e на реальной базе
 - `domain` не знает ни про GraphQL, ни про Prisma как технологию - он объявляет порт `CardReader`, абстрактный класс, который заодно служит токеном DI
 - `data` реализует порт через Prisma, `CardModule` связывает их одной строкой `{ provide: CardReader, useClass: PrismaCardRepository }` - хранилище меняется без правок домена и API
 - `api` отдаёт наружу только DTO - маппер `CardMapper` копирует поля явно, служебные `slug`, `sortOrder` и внешние ключи в ответ не попадают
+- типы хранилища домен и API берут только из `card.reader.ts` - про `~/prisma` знают ровно два файла: порт и адаптер
+- направление закреплено в ESLint (`no-restricted-imports` по слоям): `domain` не импортирует `api`, `data`, GraphQL и Prisma, `api` - `data` и Prisma, `data` - `api` и GraphQL; нарушение роняет `lint`
 
 Новый срез, например "блог", добавляется рядом с `card` тем же набором папок и подключается одним импортом модуля
 
