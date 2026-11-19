@@ -1,26 +1,21 @@
-FROM node:22-slim AS base
+FROM node:22-slim AS build
 RUN apt-get update && apt-get install -y --no-install-recommends openssl && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
-COPY package.json yarn.lock .yarnrc.yml prisma.config.ts ./
-COPY .yarn/releases ./.yarn/releases
+COPY package.json package-lock.json prisma.config.ts ./
 COPY prisma ./prisma
-
-FROM base AS build
-RUN yarn install --immutable
+RUN npm ci
 COPY tsconfig.json tsconfig.build.json nest-cli.json ./
 COPY src ./src
-RUN yarn build
+RUN npm run build
 
-FROM base AS runtime-deps
-RUN yarn workspaces focus --production
+FROM node:22-slim AS runtime-deps
+WORKDIR /app
+COPY package.json package-lock.json ./
+RUN npm ci --omit=dev --omit=optional --ignore-scripts
 
-FROM node:22-slim
-RUN apt-get update && apt-get install -y --no-install-recommends openssl && rm -rf /var/lib/apt/lists/*
+FROM gcr.io/distroless/nodejs22-debian12:nonroot
 WORKDIR /app
 ENV NODE_ENV=production
-COPY --from=runtime-deps /app ./
+COPY --from=runtime-deps /app/node_modules ./node_modules
 COPY --from=build /app/dist ./dist
-USER node
-EXPOSE 3000
-# Migrate, seed, serve: the container answers from an empty database
-CMD ["yarn", "start:prod"]
+CMD ["dist/main"]

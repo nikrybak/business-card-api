@@ -1,4 +1,3 @@
-// Live checks of a running instance: yarn smoke https://business-card-api-amp9.onrender.com
 const base = process.argv[2] ?? 'http://localhost:3000';
 const results = [];
 
