@@ -82,7 +82,8 @@ src/
     app.module.ts       корень: конфиг, Prisma, срезы, GraphQL, фильтр ошибок
     app.config.ts       PORT, NODE_ENV
     app-exception.filter.ts  политика ошибок API
-    request-logging.plugin.ts  строка лога на GraphQL-операцию
+    request-context.ts  контекст запроса: request id и DataLoader'ы
+    request-logging.plugin.ts  структурная запись лога на GraphQL-операцию
     health.controller.ts     GET /health
   database/             подключение к базе - не знает ни app, ни срезов
     database.config.ts  DATABASE_URL
@@ -111,7 +112,7 @@ src/
       card.loaders.ts   DataLoader'ы на запрос, контекст и @Loaders()
       card.example.ts   пример запроса для Sandbox
 prisma/                 схема и миграции
-test/                   e2e на реальной базе
+test/                   e2e на реальной базе и на in-memory адаптере порта
 ```
 
 ### Слои и зависимости
@@ -121,7 +122,7 @@ test/                   e2e на реальной базе
 Внутри среза направление одно: `api -> domain <- data`
 
 - `domain` не знает ни про GraphQL, ни про Prisma как технологию - он объявляет порт `CardReader`, абстрактный класс, который заодно служит токеном DI
-- `data` реализует порт через Prisma, `CardModule` связывает их одной строкой `{ provide: CardReader, useClass: PrismaCardRepository }` - хранилище меняется без правок домена и API
+- `data` реализует порт через Prisma, `CardModule` связывает их одной строкой `{ provide: CardReader, useClass: PrismaCardRepository }` - хранилище меняется без правок домена и API. Это проверено: `test/card-in-memory.e2e-spec.ts` поднимает всё приложение с `InMemoryCardReader` вместо Prisma и отвечает на GraphQL-запросы без базы
 - `api` отдаёт наружу только DTO - маппер `CardMapper` копирует поля явно, служебные `slug`, `sortOrder` и внешние ключи в ответ не попадают
 - типы хранилища домен и API берут только из `card.reader.ts` - про `~/database` в срезе знают ровно два файла: порт и адаптер
 - направление закреплено в ESLint (`no-restricted-imports` по слоям): `shared` не импортирует никого, `database` - `app` и срезы, срезы - `app`; внутри среза `domain` не импортирует `api`, `data`, GraphQL и базу, `api` - `data` и базу, `data` - `api` и GraphQL; нарушение роняет `lint`
@@ -164,7 +165,17 @@ test/                   e2e на реальной базе
 ### Ошибки
 
 - Доменные ошибки наследуют `DomainError` и несут код, например `PROFILE_NOT_FOUND`
-- Глобальный `AppExceptionFilter` отдаёт клиенту сообщение и код доменной ошибки, а всё неожиданное пишет в лог со стеком и заменяет на `INTERNAL_SERVER_ERROR` - детали инфраструктуры наружу не уходят
+- Глобальный `AppExceptionFilter` отдаёт клиенту сообщение и код доменной ошибки, а всё неожиданное пишет в лог со стеком и заменяет на `INTERNAL_SERVER_ERROR` из `ApolloServerErrorCode` - детали инфраструктуры наружу не уходят
+
+Коды, которые получает клиент в `errors[].extensions.code`:
+
+| Код                         | HTTP | Когда                                               |
+| --------------------------- | ---- | --------------------------------------------------- |
+| `PROFILE_NOT_FOUND`         | 200  | владелец визитки из `PROFILE_SLUG` не найден в базе |
+| `INTERNAL_SERVER_ERROR`     | 200  | любой неожиданный сбой, подробности только в логе   |
+| `GRAPHQL_PARSE_FAILED`      | 400  | синтаксическая ошибка или документ больше лимита    |
+| `GRAPHQL_VALIDATION_FAILED` | 400  | неизвестное поле, неверное значение enum            |
+
 - HTTP-маршруты, такие как `/health`, обрабатываются стандартным фильтром Nest
 - Документ больше 500 токенов или 10 000 символов отклоняется на разборе (`parseOptions.maxLexicalTokens` и `maxSourceLength` из `graphql-js`) с кодом `GRAPHQL_PARSE_FAILED` и не доходит до резолверов. Пример визитки в Sandbox - 41 токен, интроспекция - около 180 токенов и 2 000 символов
 - Подключение к базе ограничено 5 секундами (`connectionTimeoutMillis`): у драйвера `pg` по умолчанию ожидание бесконечное
@@ -173,7 +184,7 @@ test/                   e2e на реальной базе
 ### Конфигурация, логи, остановка
 
 - Конфигурация разбита по ключам `app`, `database`, `card` через `registerAs` и внедряется типизированно через `@Inject(config.KEY)`. Значения проверяются при старте - без `DATABASE_URL` сервис не поднимется
-- Один логгер на процесс: в production это JSON-строки для сборщика логов, в разработке - цветной вывод. Плагин Apollo пишет одну строку на операцию: имя, длительность, ошибки
+- Один логгер на процесс: в production это JSON-строки для сборщика логов, в разработке - цветной вывод. Плагин Apollo пишет одну структурную запись на операцию: `requestId`, имя, длительность, ошибки. Request id берётся из заголовка `x-request-id`, если он безопасный, иначе генерируется, и возвращается в ответе - по нему находится всё, что случилось с запросом
 - Graceful shutdown: по SIGTERM Nest перестаёт принимать запросы, затем `PrismaService` закрывает пул соединений
 
 ### Схема GraphQL
