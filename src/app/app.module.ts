@@ -5,12 +5,13 @@ import { ConfigModule } from '@nestjs/config';
 import { APP_FILTER } from '@nestjs/core';
 import { GraphQLModule } from '@nestjs/graphql';
 
-import { CARD_EXAMPLE_QUERY, CardLoadersFactory, CardModule, type GraphqlContext } from '~/card';
+import { CARD_EXAMPLE_QUERY, CardLoadersFactory, CardModule } from '~/card';
 import { PrismaModule } from '~/database';
 
 import { AppExceptionFilter } from './app-exception.filter';
 import { appConfig, type AppConfig } from './app.config';
 import { HealthController } from './health.controller';
+import { REQUEST_ID_HEADER, requestIdOf, type HttpExchange, type RequestContext } from './request-context';
 import { RequestLoggingPlugin } from './request-logging.plugin';
 
 @Module({
@@ -35,7 +36,11 @@ import { RequestLoggingPlugin } from './request-logging.plugin';
             embed: { initialState: { pollForSchemaUpdates: false } },
           }),
         ],
-        context: (): GraphqlContext => ({ loaders: loaders.create() }),
+        context: ({ req, res }: HttpExchange): RequestContext => {
+          const requestId = requestIdOf(req.header(REQUEST_ID_HEADER));
+          res.setHeader(REQUEST_ID_HEADER, requestId);
+          return { requestId, loaders: loaders.create() };
+        },
       }),
     }),
   ],

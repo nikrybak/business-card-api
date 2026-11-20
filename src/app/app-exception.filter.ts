@@ -1,3 +1,4 @@
+import { ApolloServerErrorCode } from '@apollo/server/errors';
 import { ArgumentsHost, Catch, Logger } from '@nestjs/common';
 import { BaseExceptionFilter } from '@nestjs/core';
 import { GqlContextType, GqlExceptionFilter } from '@nestjs/graphql';
@@ -26,7 +27,7 @@ export class AppExceptionFilter extends BaseExceptionFilter implements GqlExcept
     }
     this.logger.error(error instanceof Error ? error.stack : String(error));
     return new GraphQLError('Internal server error', {
-      extensions: { code: 'INTERNAL_SERVER_ERROR' },
+      extensions: { code: ApolloServerErrorCode.INTERNAL_SERVER_ERROR },
     });
   }
 }
