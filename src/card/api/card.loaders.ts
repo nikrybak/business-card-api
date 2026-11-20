@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { Context } from '@nestjs/graphql';
 
 import { CardReader, type Profile } from '~/card/domain/card.reader';
 import { CardService } from '~/card/domain/card.service';
@@ -9,6 +10,8 @@ export type CardLoaders = ReturnType<CardLoadersFactory['create']>;
 export type GraphqlContext = {
   readonly loaders: CardLoaders;
 };
+
+export const Loaders = (): ParameterDecorator => Context('loaders' satisfies keyof GraphqlContext);
 
 @Injectable()
 export class CardLoadersFactory {

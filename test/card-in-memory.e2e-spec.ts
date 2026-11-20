@@ -92,11 +92,14 @@ describe('GraphQL card over an in-memory storage adapter', () => {
     });
   });
 
-  it('stays alive but is not ready while the database is unreachable', async () => {
-    jest.spyOn(Logger.prototype, 'error').mockImplementation();
+  it('stays alive but answers 503 on readiness while the database is unreachable, without logging a failure', async () => {
+    const logged = jest.spyOn(Logger.prototype, 'error').mockImplementation();
 
     await request(app.getHttpServer()).get('/health').expect(200, { status: 'ok' });
-    await request(app.getHttpServer()).get('/health/ready').expect(500);
+    await request(app.getHttpServer())
+      .get('/health/ready')
+      .expect(503, { message: 'Database is unreachable', statusCode: 503 });
+    expect(logged).not.toHaveBeenCalled();
   });
 
   it('answers with a request id and logs the operation under it', async () => {

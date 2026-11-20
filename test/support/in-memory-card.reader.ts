@@ -8,7 +8,7 @@ import {
   type Skill,
 } from '~/card/domain/card.reader';
 
-export type CardRows = {
+type CardRows = {
   readonly profiles: readonly Profile[];
   readonly links: readonly Link[];
   readonly skills: readonly Skill[];
