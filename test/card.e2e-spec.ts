@@ -140,7 +140,7 @@ describe('GraphQL business card', () => {
     await request(app.getHttpServer()).post('/graphql').send({ query: introspection }).expect(200);
   });
 
-  it('answers a database check on /health', async () => {
-    await request(app.getHttpServer()).get('/health').expect(200, { status: 'ok' });
+  it('is ready once the database answers', async () => {
+    await request(app.getHttpServer()).get('/health/ready').expect(200, { status: 'ok' });
   });
 });

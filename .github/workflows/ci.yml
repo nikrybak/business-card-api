@@ -50,7 +50,7 @@ jobs:
         with:
           node-version: 22
       - run: docker compose up --build --detach api
-      - run: curl --fail --silent --retry 30 --retry-delay 1 --retry-all-errors http://localhost:3000/health
+      - run: curl --fail --silent --retry 30 --retry-delay 1 --retry-all-errors http://localhost:3000/health/ready
       - run: npm run check:image
       - run: npm run smoke -- http://localhost:3000
       - if: always()

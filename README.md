@@ -3,7 +3,7 @@
 Цифровая визитка Никиты Рыбака - backend на NestJS, Prisma и GraphQL
 
 - Apollo Sandbox: <https://business-card-api-amp9.onrender.com/graphql>
-- Health check: <https://business-card-api-amp9.onrender.com/health>
+- Health check: <https://business-card-api-amp9.onrender.com/health/ready>
 
 Сервис на бесплатном тарифе Render засыпает без запросов - первый ответ после паузы идёт до минуты
 
@@ -84,7 +84,7 @@ src/
     app-exception.filter.ts  политика ошибок API
     request-context.ts  контекст запроса: request id и DataLoader'ы
     request-logging.plugin.ts  структурная запись лога на GraphQL-операцию
-    health.controller.ts     GET /health
+    health.controller.ts     GET /health и /health/ready
   database/             подключение к базе - не знает ни app, ни срезов
     database.config.ts  DATABASE_URL
     prisma.module.ts    глобальный PrismaService
@@ -185,6 +185,7 @@ test/                   e2e на реальной базе и на in-memory а�
 
 - Конфигурация разбита по ключам `app`, `database`, `card` через `registerAs` и внедряется типизированно через `@Inject(config.KEY)`. Значения проверяются при старте - без `DATABASE_URL` сервис не поднимется
 - Один логгер на процесс: в production это JSON-строки для сборщика логов, в разработке - цветной вывод. Плагин Apollo пишет одну структурную запись на операцию: `requestId`, имя, длительность, ошибки. Request id берётся из заголовка `x-request-id`, если он безопасный, иначе генерируется, и возвращается в ответе - по нему находится всё, что случилось с запросом
+- Две проверки: `/health` отвечает, пока жив процесс, `/health/ready` - только когда отвечает база. Render смотрит на readiness, поэтому новый инстанс получает трафик лишь после того, как достучался до базы
 - Graceful shutdown: по SIGTERM Nest перестаёт принимать запросы, затем `PrismaService` закрывает пул соединений
 
 ### Схема GraphQL

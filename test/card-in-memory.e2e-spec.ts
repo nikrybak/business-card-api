@@ -92,6 +92,13 @@ describe('GraphQL card over an in-memory storage adapter', () => {
     });
   });
 
+  it('stays alive but is not ready while the database is unreachable', async () => {
+    jest.spyOn(Logger.prototype, 'error').mockImplementation();
+
+    await request(app.getHttpServer()).get('/health').expect(200, { status: 'ok' });
+    await request(app.getHttpServer()).get('/health/ready').expect(500);
+  });
+
   it('answers with a request id and logs the operation under it', async () => {
     const log = jest.spyOn(Logger.prototype, 'log').mockImplementation();
 

@@ -25,8 +25,8 @@ const gql = async (query) => {
 };
 
 (async () => {
-  await check('health reports ok with the database reachable', async () => {
-    const response = await fetch(`${base}/health`);
+  await check('readiness reports ok with the database reachable', async () => {
+    const response = await fetch(`${base}/health/ready`);
     assert(response.status === 200, `status ${response.status}`);
     assert((await response.json()).status === 'ok', 'body is not ok');
     assert(!response.headers.has('x-powered-by'), 'x-powered-by is exposed');
